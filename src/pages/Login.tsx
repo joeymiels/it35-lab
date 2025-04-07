@@ -1,83 +1,128 @@
 import { 
+  IonAlert,
   IonAvatar,
-    IonButton,
-    IonButtons,
-      IonContent, 
-      IonHeader, 
-      IonIcon, 
-      IonInput, 
-      IonInputPasswordToggle, 
-      IonItem, 
-      IonMenuButton, 
-      IonPage, 
-      IonTitle, 
-      IonToolbar, 
-      useIonRouter
-  } from '@ionic/react';
-import { logoFacebook, logoInstagram, logoIonic, logoTwitter } from 'ionicons/icons';
-  
-  const Login: React.FC = () => {
-    const navigation = useIonRouter();
-  
-    const doLogin = () => {
-        navigation.push('/it35-lab/app','forward','replace');
+  IonButton,
+  IonContent, 
+  IonIcon, 
+  IonInput, 
+  IonInputPasswordToggle,  
+  IonPage,  
+  IonToast,  
+  useIonRouter
+} from '@ionic/react';
+import { logoIonic } from 'ionicons/icons';
+import { useState } from 'react';
+import { supabase } from '../pages/utils/supabaseClient';
+
+const AlertBox: React.FC<{ message: string; isOpen: boolean; onClose: () => void }> = ({ message, isOpen, onClose }) => {
+  return (
+    <IonAlert
+      isOpen={isOpen}
+      onDidDismiss={onClose}
+      header="Notification"
+      message={message}
+      buttons={['OK']}
+    />
+  );
+};
+
+const Login: React.FC = () => {
+  const navigation = useIonRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const doLogin = async () => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setAlertMessage(error.message);
+      setShowAlert(true);
+      return;
     }
-    return (
-      <IonPage>
-        <IonContent className='ion-padding'>
 
-        <div style={{
-                  display: 'flex',
-                  flexDirection:'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  width:'100%',
-                  marginTop:'-10rem',
-                  marginBottom:'-18rem',
-                }}>
-             <IonAvatar
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '150px',
-                      height: '150px',
-                      borderRadius: '50%', 
-                      overflow: 'hidden' 
-                    }}
-                  >
-                    {/* <img alt="Silhouette of a person's head" src="https://scontent.fcgy2-2.fna.fbcdn.net/v/t39.30808-6/457628660_1592580897993280_557695295736145833_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeEfyz7WC1Idegr07u9_DNo0nB__l3Tp5_ucH_-XdOnn-6kmxG7nvDuoCcQVTE0FLnaVCwDGtLa0av4LCODGN0Hp&_nc_ohc=QzkN6gJV28gQ7kNvgH7t4gw&_nc_oc=Adgpm7Xny_2bsaGS1ZQiFjhZuzuU7dZxyU3-ndUQvh4-ucThrwfd0qmZE5Y0HwJo-Rg&_nc_zt=23&_nc_ht=scontent.fcgy2-2.fna&_nc_gid=AabNn05ywewNzlnan4r-cRr&oh=00_AYBt5Bvwt-qz1OJoKX8Zau10eCQsC27pQSdiyo7-mrNlHg&oe=67CCD83A" /> */}
-                    {
-                     <IonIcon 
-                      icon={logoInstagram}
-                      color='primary'
-                      style={{ fontSize: '120px', color: '#6c757d' }} 
-                    />
-                    }
-                  </IonAvatar>
-                  <h1 style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>USER LOGIN</h1>
-                    
-          </div>
-          
-            <IonTitle>Login</IonTitle>
-          <IonItem>
-        <IonInput label="Email input" type="email" placeholder="Jologs@codes"></IonInput>
-      </IonItem>
-
-        <IonInput type="password" label="Password" value="Jologscodes">
-      <IonInputPasswordToggle slot="end"></IonInputPasswordToggle>
-    </IonInput>
-            <IonButton onClick={() => doLogin()} expand="full">
-                Login
-            </IonButton>
-        </IonContent>
-      </IonPage>
-    );
+    setShowToast(true); 
+    setTimeout(() => {
+      navigation.push('/it35-lab/app', 'forward', 'replace');
+    }, 300);
   };
   
-  export default Login;
+  return (
+    <IonPage>
+      <IonContent className='ion-padding'>
+        <div style={{
+          display: 'flex',
+          flexDirection:'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop:'25%'
+        }}>
+          <IonAvatar
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%', 
+              overflow: 'hidden' 
+            }}
+          >
+            <IonIcon 
+              icon={logoIonic}
+              color='primary'
+              style={{ fontSize: '120px', color: '#6c757d' }} 
+            />
+          </IonAvatar>
+          <h1 style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>USER LOGIN</h1>
+          <IonInput
+            label="Email" 
+            labelPlacement="floating" 
+            fill="outline"
+            type="email"
+            placeholder="Enter Email"
+            value={email}
+            onIonChange={e => setEmail(e.detail.value!)}
+          />
+          <IonInput style={{ marginTop:'10px' }}      
+            fill="outline"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onIonChange={e => setPassword(e.detail.value!)}
+          >
+            <IonInputPasswordToggle slot="end"></IonInputPasswordToggle>
+          </IonInput>
+        </div>
+        <IonButton onClick={doLogin} expand="full" shape='round'>
+          Login
+        </IonButton>
+
+        <IonButton routerLink="/it35-lab/register" expand="full" fill="clear" shape='round'>
+          Don't have an account? Register here
+        </IonButton>
+
+        {/* Reusable AlertBox Component */}
+        <AlertBox message={alertMessage} isOpen={showAlert} onClose={() => setShowAlert(false)} />
+
+        {/* IonToast for success message */}
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message="Login successful! Redirecting..."
+          duration={1500}
+          position="top"
+          color="primary"
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default Login;
