@@ -1,18 +1,16 @@
-import { 
+import {
   IonAlert,
   IonAvatar,
   IonButton,
-  IonContent, 
-  IonIcon, 
-  IonInput, 
-  IonInputPasswordToggle,  
-  IonPage,  
-  IonToast,  
+  IonContent,
+  IonInput,
+  IonInputPasswordToggle,
+  IonPage,
+  IonToast,
   useIonRouter
 } from '@ionic/react';
-import { logoIonic } from 'ionicons/icons';
 import { useState } from 'react';
-import { supabase } from '../pages/utils/supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 
 const AlertBox: React.FC<{ message: string; isOpen: boolean; onClose: () => void }> = ({ message, isOpen, onClose }) => {
   return (
@@ -43,82 +41,132 @@ const Login: React.FC = () => {
       return;
     }
 
-    setShowToast(true); 
+    setShowToast(true);
     setTimeout(() => {
       navigation.push('/it35-lab/app', 'forward', 'replace');
     }, 300);
   };
-  
+
   return (
     <IonPage>
-      <IonContent className='ion-padding'>
-        <div style={{
-          display: 'flex',
-          flexDirection:'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop:'25%'
-        }}>
-          <IonAvatar
+      <IonContent
+  fullscreen
+  className="ion-padding"
+  style={{
+    backgroundImage: 'url("/HD-wallpaper-merry-go-ocean-peace-sky-one-piece-cool-ship-blue.jpg")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  }}
+      >
+        <div
+          style={{
+            maxWidth: '400px',
+            margin: 'auto',
+            marginTop: '15%',
+            padding: '20px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 12px rgb(23, 91, 236)',
+            background: 'rgba(8, 60, 233, 0.75)',
+            color: '#fff'
+          }}
+        >
+          <div
             style={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '150px',
-              height: '150px',
-              borderRadius: '50%', 
-              overflow: 'hidden' 
+              marginBottom: '20px'
             }}
           >
-            <IonIcon 
-              icon={logoIonic}
-              color='primary'
-              style={{ fontSize: '120px', color: '#6c757d' }} 
-            />
-          </IonAvatar>
-          <h1 style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>USER LOGIN</h1>
+            <IonAvatar
+              style={{
+                width: '120px',
+                height: '120px',
+                marginBottom: '20px',
+                overflow: 'hidden',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <img
+                src="https://i.pinimg.com/736x/1d/63/d8/1d63d82c1f5dd9c2f4974a31a206835a.jpg"
+                alt="One Piece Logo"
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  animation: 'float 1s ease-in-out infinite',
+                  borderRadius: '50%'
+                }}
+              />
+            </IonAvatar>
+
+            <style>
+              {`
+                @keyframes float {
+                  0% { transform: translateY(0px); }
+                  50% { transform: translateY(-5px); }
+                  100% { transform: translateY(0px); }
+                }
+              `}
+            </style>
+
+            <h1 style={{ margin: '0', fontWeight: 'bold', color: '#FFD700' }}>WELCOME PIRATE</h1>
+          </div>
+
           <IonInput
-            label="Email" 
-            labelPlacement="floating" 
+            label="Email"
+            labelPlacement="floating"
             fill="outline"
             type="email"
             placeholder="Enter Email"
             value={email}
             onIonChange={e => setEmail(e.detail.value!)}
+            style={{ color: '#fff' }}
           />
-          <IonInput style={{ marginTop:'10px' }}      
+          <IonInput
+            style={{ marginTop: '15px', color: '#fff' }}
             fill="outline"
             type="password"
             placeholder="Password"
             value={password}
             onIonChange={e => setPassword(e.detail.value!)}
           >
-            <IonInputPasswordToggle slot="end"></IonInputPasswordToggle>
+            <IonInputPasswordToggle slot="end" />
           </IonInput>
+
+          <IonButton
+            onClick={doLogin}
+            expand="block"
+            shape="round"
+            color="warning"
+            style={{ marginTop: '25px' }}
+          >
+            Login
+          </IonButton>
+
+          <IonButton
+            routerLink="/it35-lab/register"
+            expand="block"
+            fill="clear"
+            shape="round"
+            color="light"
+            style={{ marginTop: '10px' }}
+          >
+            Don't have an account? Register here
+          </IonButton>
         </div>
-        <IonButton onClick={doLogin} expand="full" shape='round'>
-          Login
-        </IonButton>
 
-        <IonButton routerLink="/it35-lab/register" expand="full" fill="clear" shape='round'>
-          Don't have an account? Register here
-        </IonButton>
-
-        {/* Reusable AlertBox Component */}
         <AlertBox message={alertMessage} isOpen={showAlert} onClose={() => setShowAlert(false)} />
 
-        {/* IonToast for success message */}
         <IonToast
           isOpen={showToast}
           onDidDismiss={() => setShowToast(false)}
           message="Login successful! Redirecting..."
           duration={1500}
           position="top"
-          color="primary"
+          color="success"
         />
       </IonContent>
     </IonPage>
