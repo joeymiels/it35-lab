@@ -60,17 +60,21 @@ const Login: React.FC = () => {
   }}
       >
         <div
-          style={{
-            maxWidth: '400px',
-            margin: 'auto',
-            marginTop: '15%',
-            padding: '20px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 12px rgb(23, 91, 236)',
-            background: 'rgba(8, 60, 233, 0.75)',
-            color: '#fff'
-          }}
-        >
+  style={{
+    maxWidth: '400px',
+    margin: 'auto',
+    marginTop: '15%',
+    padding: '20px',
+    borderRadius: '16px',
+    boxShadow: '0 4px 12px rgb(23, 91, 236)',
+    backgroundImage: `url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJ1ZTZianhtNjA1YXZ1enU4bjNuNTRzbGNqb21uczFkeHdub3k0YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/C3brYLms1bhv2/200.webp')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    color: '#fff'
+  }}
+>
+
           <div
             style={{
               display: 'flex',
