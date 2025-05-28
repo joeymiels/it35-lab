@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   IonContent,
   IonHeader,
@@ -14,7 +14,8 @@ import {
   IonCard,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent
+  IonCardContent,
+  useIonToast
 } from '@ionic/react';
 
 const Home: React.FC = () => {
@@ -22,51 +23,60 @@ const Home: React.FC = () => {
   const [text, setText] = useState<string>('');
   const [result, setResult] = useState<string>('');
   const [history, setHistory] = useState<string[]>([]);
+  const [present] = useIonToast();
 
   const caesarEncrypt = (text: string, shift: number): string => {
-    return text.split('').map(char => {
-      if (char.match(/[a-z]/i)) {
-        let code = char.charCodeAt(0);
-        if (code >= 65 && code <= 90) {
-          return String.fromCharCode(((code - 65 + shift) % 26) + 65);
-        } else if (code >= 97 && code <= 122) {
-          return String.fromCharCode(((code - 97 + shift) % 26) + 97);
+    return text
+      .split('')
+      .map((char) => {
+        if (char.match(/[a-z]/i)) {
+          let code = char.charCodeAt(0);
+          if (code >= 65 && code <= 90) {
+            return String.fromCharCode(((code - 65 + shift) % 26) + 65);
+          } else if (code >= 97 && code <= 122) {
+            return String.fromCharCode(((code - 97 + shift) % 26) + 97);
+          }
         }
-      }
-      return char;
-    }).join('');
+        return char;
+      })
+      .join('');
   };
 
   const caesarDecrypt = (text: string, shift: number): string => {
-    return text.split('').map(char => {
-      if (char.match(/[a-z]/i)) {
-        let code = char.charCodeAt(0);
-        if (code >= 65 && code <= 90) {
-          return String.fromCharCode(((code - 65 - shift + 26) % 26) + 65);
-        } else if (code >= 97 && code <= 122) {
-          return String.fromCharCode(((code - 97 - shift + 26) % 26) + 97);
+    return text
+      .split('')
+      .map((char) => {
+        if (char.match(/[a-z]/i)) {
+          let code = char.charCodeAt(0);
+          if (code >= 65 && code <= 90) {
+            return String.fromCharCode(((code - 65 - shift + 26) % 26) + 65);
+          } else if (code >= 97 && code <= 122) {
+            return String.fromCharCode(((code - 97 - shift + 26) % 26) + 97);
+          }
         }
-      }
-      return char;
-    }).join('');
+        return char;
+      })
+      .join('');
   };
 
   const handleEncrypt = () => {
     const encrypted = caesarEncrypt(text, shift);
-    setResult("🔐 Encrypted: " + encrypted);
-    setHistory(prev => ["Encrypted: " + encrypted, ...prev]);
+    setResult(`🔐 Encrypted: ${encrypted}`);
+    setHistory((prev) => [`Encrypted: ${encrypted}`, ...prev]);
+    present(`Text encrypted successfully!`, 2000);
   };
 
   const handleDecrypt = () => {
     const decrypted = caesarDecrypt(text, shift);
-    setResult("🔓 Decrypted: " + decrypted);
-    setHistory(prev => ["Decrypted: " + decrypted, ...prev]);
+    setResult(`🔓 Decrypted: ${decrypted}`);
+    setHistory((prev) => [`Decrypted: ${decrypted}`, ...prev]);
+    present(`Text decrypted successfully!`, 2000);
   };
 
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar color="primary">
           <IonTitle>Text Encryption & Decryption</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -77,6 +87,7 @@ const Home: React.FC = () => {
             type="number"
             value={shift}
             onIonChange={(e) => setShift(parseInt(e.detail.value!, 10) || 0)}
+            color="secondary"
           />
         </IonItem>
 
@@ -86,19 +97,20 @@ const Home: React.FC = () => {
             rows={6}
             value={text}
             onIonChange={(e) => setText(e.detail.value!)}
+            color="tertiary"
           />
         </IonItem>
 
-        <IonButton expand="block" onClick={handleEncrypt}>
+        <IonButton expand="block" color="success" onClick={handleEncrypt}>
           Encrypt
         </IonButton>
 
-        <IonButton expand="block" color="medium" onClick={handleDecrypt}>
+        <IonButton expand="block" color="warning" onClick={handleDecrypt}>
           Decrypt
         </IonButton>
 
         <IonText color="dark">
-          <h3 style={{ marginTop: '20px' }}>{result}</h3>
+          <h3 style={{ marginTop: '20px', color: '#3880ff' }}>{result}</h3>
         </IonText>
 
         <IonCard>
@@ -106,9 +118,25 @@ const Home: React.FC = () => {
             <IonCardTitle>History</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
-            {history.length > 0 ? history.map((entry, index) => (
-              <p key={index}>{entry}</p>
-            )) : <p>No history yet.</p>}
+            {history.length > 0 ? (
+              history.map((entry, index) => (
+                <p
+                  key={index}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '5px',
+                    backgroundColor: '#e0e0e0',
+                    cursor: 'pointer',
+                    margin: '5px 0',
+                  }}
+                  onClick={() => present(entry, 2000)}
+                >
+                  {entry}
+                </p>
+              ))
+            ) : (
+              <p>No history yet.</p>
+            )}
           </IonCardContent>
         </IonCard>
       </IonContent>
