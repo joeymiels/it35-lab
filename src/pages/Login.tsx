@@ -7,7 +7,8 @@ import {
   IonInputPasswordToggle,
   IonPage,
   IonToast,
-  useIonRouter
+  useIonRouter,
+  IonRange
 } from '@ionic/react';
 import { useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
@@ -31,8 +32,15 @@ const Login: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [sliderVerified, setSliderVerified] = useState(false);
 
   const doLogin = async () => {
+    if (!sliderVerified) {
+      setAlertMessage('Please complete the slide CAPTCHA first.');
+      setShowAlert(true);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
@@ -50,31 +58,30 @@ const Login: React.FC = () => {
   return (
     <IonPage>
       <IonContent
-  fullscreen
-  className="ion-padding"
-  style={{
-    backgroundImage: 'url("/HD-wallpaper-merry-go-ocean-peace-sky-one-piece-cool-ship-blue.jpg")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat'
-  }}
+        fullscreen
+        className="ion-padding"
+        style={{
+          backgroundImage: 'url("/HD-wallpaper-merry-go-ocean-peace-sky-one-piece-cool-ship-blue.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
         <div
-  style={{
-    maxWidth: '400px',
-    margin: 'auto',
-    marginTop: '15%',
-    padding: '20px',
-    borderRadius: '16px',
-    boxShadow: '0 4px 12px rgb(23, 91, 236)',
-    backgroundImage: `url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJ1ZTZianhtNjA1YXZ1enU4bjNuNTRzbGNqb21uczFkeHdub3k0YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/C3brYLms1bhv2/200.webp')`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    color: '#fff'
-  }}
->
-
+          style={{
+            maxWidth: '400px',
+            margin: 'auto',
+            marginTop: '15%',
+            padding: '20px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 12px rgb(23, 91, 236)',
+            backgroundImage: `url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJ1ZTZianhtNjA1YXZ1enU4bjNuNTRzbGNqb21uczFkeHdub3k0YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/C3brYLms1bhv2/200.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            color: '#fff'
+          }}
+        >
           <div
             style={{
               display: 'flex',
@@ -139,6 +146,25 @@ const Login: React.FC = () => {
           >
             <IonInputPasswordToggle slot="end" />
           </IonInput>
+
+          {/* SLIDE CAPTCHA */}
+          <div style={{ marginTop: '20px', color: '#FFD700', fontWeight: 'bold' }}>Slide to verify</div>
+          <IonRange
+            min={0}
+            max={100}
+            step={1}
+            snaps={false}
+            pin={true}
+            color={sliderVerified ? 'success' : 'warning'}
+            onIonChange={(e) => {
+              const value = e.detail.value as number;
+              if (value >= 100) {
+                setSliderVerified(true);
+              } else {
+                setSliderVerified(false);
+              }
+            }}
+          />
 
           <IonButton
             onClick={doLogin}
