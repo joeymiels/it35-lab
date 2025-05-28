@@ -1,207 +1,119 @@
-import { useState, useEffect } from 'react';
-import { IonApp, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonInput, IonLabel, IonModal, IonFooter, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonAlert, IonText, IonAvatar, IonCol, IonGrid, IonRow, IonIcon, IonPopover } from '@ionic/react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../utils/supabaseClient';
-import { colorFill, pencil, trash } from 'ionicons/icons';
+import React, { useState, useEffect } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonButton,
+  IonTextarea,
+  IonText,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent
+} from '@ionic/react';
 
-interface Post {
-  post_id: string;
-  user_id: number;
-  username: string;
-  avatar_url: string;
-  post_content: string;
-  post_created_at: string;
-  post_updated_at: string;
-}
+const Home: React.FC = () => {
+  const [shift, setShift] = useState<number>(3);
+  const [text, setText] = useState<string>('');
+  const [result, setResult] = useState<string>('');
+  const [history, setHistory] = useState<string[]>([]);
 
-const FeedContainer = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [postContent, setPostContent] = useState('');
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [popoverState, setPopoverState] = useState<{ open: boolean; event: Event | null; postId: string | null }>({ open: false, event: null, postId: null });
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: authData } = await supabase.auth.getUser();
-      if (authData?.user?.email?.endsWith('@nbsc.edu.ph')) {
-        setUser(authData.user);
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('user_id, username, user_avatar_url')
-          .eq('user_email', authData.user.email)
-          .single();
-        if (!error && userData) {
-          setUser({ ...authData.user, id: userData.user_id });
-          setUsername(userData.username);
+  const caesarEncrypt = (text: string, shift: number): string => {
+    return text.split('').map(char => {
+      if (char.match(/[a-z]/i)) {
+        let code = char.charCodeAt(0);
+        if (code >= 65 && code <= 90) {
+          return String.fromCharCode(((code - 65 + shift) % 26) + 65);
+        } else if (code >= 97 && code <= 122) {
+          return String.fromCharCode(((code - 97 + shift) % 26) + 97);
         }
       }
-    };
-    const fetchPosts = async () => {
-      const { data, error } = await supabase.from('posts').select('*').order('post_created_at', { ascending: false });
-      if (!error) setPosts(data as Post[]);
-    };
-    fetchUser();
-    fetchPosts();
-  }, []);
-
-  const createPost = async () => {
-    if (!postContent || !user || !username) return;
-  
-    // Fetch avatar URL
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('user_avatar_url')
-      .eq('user_id', user.id)
-      .single();
-  
-    if (userError) {
-      console.error('Error fetching user avatar:', userError);
-      return;
-    }
-  
-    const avatarUrl = userData?.user_avatar_url || 'https://ionicframework.com/docs/img/demos/avatar.svg';
-  
-    // Insert post with avatar URL
-    const { data, error } = await supabase
-      .from('posts') 
-      .insert([
-        { post_content: postContent, user_id: user.id, username, avatar_url: avatarUrl }
-      ])
-      .select('*');
-  
-    if (!error && data) {
-      setPosts([data[0] as Post, ...posts]);
-    }
-  
-    setPostContent('');
+      return char;
+    }).join('');
   };
 
-  const deletePost = async (post_id: string) => {
-    await supabase.from('posts').delete().match({ post_id });
-    setPosts(posts.filter(post => post.post_id !== post_id));
+  const caesarDecrypt = (text: string, shift: number): string => {
+    return text.split('').map(char => {
+      if (char.match(/[a-z]/i)) {
+        let code = char.charCodeAt(0);
+        if (code >= 65 && code <= 90) {
+          return String.fromCharCode(((code - 65 - shift + 26) % 26) + 65);
+        } else if (code >= 97 && code <= 122) {
+          return String.fromCharCode(((code - 97 - shift + 26) % 26) + 97);
+        }
+      }
+      return char;
+    }).join('');
   };
 
-  const startEditingPost = (post: Post) => {
-    setEditingPost(post);
-    setPostContent(post.post_content);
-    setIsModalOpen(true);
+  const handleEncrypt = () => {
+    const encrypted = caesarEncrypt(text, shift);
+    setResult("🔐 Encrypted: " + encrypted);
+    setHistory(prev => ["Encrypted: " + encrypted, ...prev]);
   };
 
-  const savePost = async () => {
-    if (!postContent || !editingPost) return;
-    const { data, error } = await supabase
-      .from('posts')
-      .update({ post_content: postContent })
-      .match({ post_id: editingPost.post_id })
-      .select('*');
-    if (!error && data) {
-      const updatedPost = data[0] as Post;
-      setPosts(posts.map(post => (post.post_id === updatedPost.post_id ? updatedPost : post)));
-      setPostContent('');
-      setEditingPost(null);
-      setIsModalOpen(false);
-      setIsAlertOpen(true);
-    }
+  const handleDecrypt = () => {
+    const decrypted = caesarDecrypt(text, shift);
+    setResult("🔓 Decrypted: " + decrypted);
+    setHistory(prev => ["Decrypted: " + decrypted, ...prev]);
   };
 
   return (
-<>
-        <IonContent>
-          {user ? (
-            <>
-            <IonCard>
-                <IonCardHeader>
-                    <IonCardTitle>Create Post</IonCardTitle>
-                </IonCardHeader>
-                <IonCardContent>
-                    <IonInput value={postContent} onIonChange={e => setPostContent(e.detail.value!)} placeholder="Write a post..." />
-                </IonCardContent>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
-                    <IonButton onClick={createPost}>Post</IonButton>
-                </div>
-            </IonCard>
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>Text Encryption & Decryption</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent className="ion-padding">
+        <IonItem>
+          <IonLabel position="floating">Enter Shift Value</IonLabel>
+          <IonInput
+            type="number"
+            value={shift}
+            onIonChange={(e) => setShift(parseInt(e.detail.value!, 10) || 0)}
+          />
+        </IonItem>
 
-              {posts.map(post => (
-                <IonCard key={post.post_id} style={{ marginTop: '2rem' }}>
-                <IonCardHeader>
-                  <IonRow>
-                    <IonCol size="1.85">
-                      <IonAvatar>
-                        <img alt={post.username} src={post.avatar_url} />
-                      </IonAvatar>
-                    </IonCol>
-                    <IonCol>
-                      <IonCardTitle style={{ marginTop: '10px' }}>{post.username}</IonCardTitle>
-                      <IonCardSubtitle>{new Date(post.post_created_at).toLocaleString()}</IonCardSubtitle>
-                    </IonCol>
-                    <IonCol size="auto">
-                      {/* Pencil icon triggers popover */}
-                      <IonButton
-                        fill="clear"
-                        onClick={(e) => setPopoverState({ open: true, event: e.nativeEvent, postId: post.post_id })}
-                      >
-                        <IonIcon color="secondary" icon={pencil} />
-                      </IonButton>
-                    </IonCol>
-                  </IonRow>
-                </IonCardHeader>
-              
-                <IonCardContent>
-                    <IonText style={{ color: 'black' }}>
-                        <h1>{post.post_content}</h1>
-                    </IonText>
-                </IonCardContent>
-                
-                {/* Popover with Edit and Delete options */}
-                <IonPopover
-                  isOpen={popoverState.open && popoverState.postId === post.post_id}
-                  event={popoverState.event}
-                  onDidDismiss={() => setPopoverState({ open: false, event: null, postId: null })}
-                >
-                  <IonButton fill="clear" onClick={() => { startEditingPost(post); setPopoverState({ open: false, event: null, postId: null }); }}>
-                    Edit
-                  </IonButton>
-                  <IonButton fill="clear" color="danger" onClick={() => { deletePost(post.post_id); setPopoverState({ open: false, event: null, postId: null }); }}>
-                    Delete
-                  </IonButton>
-                </IonPopover>
-              </IonCard>
-              ))}
-            </>
-          ) : (
-            <IonLabel>Loading...</IonLabel>
-          )}
-        </IonContent>
+        <IonItem>
+          <IonLabel position="floating">Enter Text</IonLabel>
+          <IonTextarea
+            rows={6}
+            value={text}
+            onIonChange={(e) => setText(e.detail.value!)}
+          />
+        </IonItem>
 
-        <IonModal isOpen={isModalOpen} onDidDismiss={() => setIsModalOpen(false)}>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>Edit Post</IonTitle>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent>
-            <IonInput value={postContent} onIonChange={e => setPostContent(e.detail.value!)} placeholder="Edit your post..." />
-          </IonContent>
-          <IonFooter>
-            <IonButton onClick={savePost}>Save</IonButton>
-            <IonButton onClick={() => setIsModalOpen(false)}>Cancel</IonButton>
-          </IonFooter>
-        </IonModal>
+        <IonButton expand="block" onClick={handleEncrypt}>
+          Encrypt
+        </IonButton>
 
-        <IonAlert
-          isOpen={isAlertOpen}
-          onDidDismiss={() => setIsAlertOpen(false)}
-          header="Success"
-          message="Post updated successfully!"
-          buttons={['OK']}
-        />
-     </>
-   
+        <IonButton expand="block" color="medium" onClick={handleDecrypt}>
+          Decrypt
+        </IonButton>
+
+        <IonText color="dark">
+          <h3 style={{ marginTop: '20px' }}>{result}</h3>
+        </IonText>
+
+        <IonCard>
+          <IonCardHeader>
+            <IonCardTitle>History</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            {history.length > 0 ? history.map((entry, index) => (
+              <p key={index}>{entry}</p>
+            )) : <p>No history yet.</p>}
+          </IonCardContent>
+        </IonCard>
+      </IonContent>
+    </IonPage>
   );
 };
 
-export default FeedContainer;
+export default Home;
