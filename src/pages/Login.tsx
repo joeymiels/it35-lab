@@ -34,7 +34,14 @@ const Login: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [sliderVerified, setSliderVerified] = useState(false);
 
+  // Detection security states
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutTimer, setLockoutTimer] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+
   const doLogin = async () => {
+    if (lockoutTimer) return;
+
     if (!sliderVerified) {
       setAlertMessage('Please complete the slide CAPTCHA first.');
       setShowAlert(true);
@@ -44,11 +51,36 @@ const Login: React.FC = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setAlertMessage(error.message);
-      setShowAlert(true);
+      const newFailedAttempts = failedAttempts + 1;
+      setFailedAttempts(newFailedAttempts);
+
+      if (newFailedAttempts >= 2) {
+        setLockoutTimer(true);
+        setAlertMessage("Too many failed attempts. Please wait 10 seconds.");
+        setShowAlert(true);
+        let secondsLeft = 10;
+
+        const countdownInterval = setInterval(() => {
+          secondsLeft -= 1;
+          setCountdown(secondsLeft);
+
+          if (secondsLeft <= 0) {
+            clearInterval(countdownInterval);
+            setFailedAttempts(0);
+            setLockoutTimer(false);
+            setCountdown(10);
+          }
+        }, 1000);
+      } else {
+        setAlertMessage(error.message);
+        setShowAlert(true);
+      }
+
       return;
     }
 
+    // Successful login
+    setFailedAttempts(0);
     setShowToast(true);
     setTimeout(() => {
       navigation.push('/it35-lab/app', 'forward', 'replace');
@@ -75,7 +107,7 @@ const Login: React.FC = () => {
             padding: '20px',
             borderRadius: '16px',
             boxShadow: '0 4px 12px rgb(23, 91, 236)',
-            backgroundImage: `url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJ1ZTZianhtNjA1YXZ1enU4bjNuNTRzbGNqb21uczFkeHdub3k0YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/C3brYLms1bhv2/200.webp')`,
+            backgroundImage: 'url("https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJ1ZTZianhtNjA1YXZ1enU4bjNuNTRzbGNqb21uczFkeHdub3k0YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/C3brYLms1bhv2/200.webp")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
@@ -158,11 +190,7 @@ const Login: React.FC = () => {
             color={sliderVerified ? 'success' : 'warning'}
             onIonChange={(e) => {
               const value = e.detail.value as number;
-              if (value >= 100) {
-                setSliderVerified(true);
-              } else {
-                setSliderVerified(false);
-              }
+              setSliderVerified(value >= 100);
             }}
           />
 
@@ -172,8 +200,9 @@ const Login: React.FC = () => {
             shape="round"
             color="warning"
             style={{ marginTop: '25px' }}
+            disabled={lockoutTimer}
           >
-            Login
+            {lockoutTimer ? `Wait ${countdown}s...` : 'Login'}
           </IonButton>
 
           <IonButton

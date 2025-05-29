@@ -23,6 +23,7 @@ const Home: React.FC = () => {
   const [text, setText] = useState<string>('');
   const [result, setResult] = useState<string>('');
   const [history, setHistory] = useState<string[]>([]);
+  const [report, setReport] = useState<string | null>(null);
   const [present] = useIonToast();
 
   const caesarEncrypt = (text: string, shift: number): string => {
@@ -61,16 +62,30 @@ const Home: React.FC = () => {
 
   const handleEncrypt = () => {
     const encrypted = caesarEncrypt(text, shift);
-    setResult(`🔐 Encrypted: ${encrypted}`);
-    setHistory((prev) => [`Encrypted: ${encrypted}`, ...prev]);
-    present(`Text encrypted successfully!`, 2000);
+    const message = `🔐 Encrypted: ${encrypted}`;
+    setResult(message);
+    setHistory((prev) => [message, ...prev]);
+    setReport(null);
+    present('Text encrypted successfully!', 2000);
   };
 
   const handleDecrypt = () => {
     const decrypted = caesarDecrypt(text, shift);
-    setResult(`🔓 Decrypted: ${decrypted}`);
-    setHistory((prev) => [`Decrypted: ${decrypted}`, ...prev]);
-    present(`Text decrypted successfully!`, 2000);
+    const message = `🔓 Decrypted: ${decrypted}`;
+    setResult(message);
+    setHistory((prev) => [message, ...prev]);
+    setReport(null);
+    present('Text decrypted successfully!', 2000);
+  };
+
+  const handleGenerateReport = () => {
+    if (!result) {
+      present('No result available to generate report.', 2000);
+      return;
+    }
+    const reportContent = `📄 Caesar Cipher Report\n\nShift: ${shift}\nInput: ${text}\nResult: ${result}`;
+    setReport(reportContent);
+    present('Report generated successfully!', 2000);
   };
 
   return (
@@ -109,6 +124,10 @@ const Home: React.FC = () => {
           Decrypt
         </IonButton>
 
+        <IonButton expand="block" color="medium" onClick={handleGenerateReport}>
+          Generate Report
+        </IonButton>
+
         <IonText color="dark">
           <h3 style={{ marginTop: '20px', color: '#3880ff' }}>{result}</h3>
         </IonText>
@@ -139,6 +158,17 @@ const Home: React.FC = () => {
             )}
           </IonCardContent>
         </IonCard>
+
+        {report && (
+          <IonCard color="light">
+            <IonCardHeader>
+              <IonCardTitle>Generated Report</IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <pre style={{ whiteSpace: 'pre-wrap' }}>{report}</pre>
+            </IonCardContent>
+          </IonCard>
+        )}
       </IonContent>
     </IonPage>
   );
